@@ -3,11 +3,11 @@
 <suite name="Failed suite [Default suite]" guice-stage="DEVELOPMENT">
   <test thread-count="5" name="Default test(failed)">
     <classes>
-      <class name="crudOperaion.JsonSchemaValidator">
+      <class name="crudOperaion.GetCallWithAssertion">
         <methods>
-          <include name="test_schemaValidator"/>
+          <include name="test_get"/>
         </methods>
-      </class> <!-- crudOperaion.JsonSchemaValidator -->
+      </class> <!-- crudOperaion.GetCallWithAssertion -->
     </classes>
   </test> <!-- Default test(failed) -->
 </suite> <!-- Failed suite [Default suite] -->
