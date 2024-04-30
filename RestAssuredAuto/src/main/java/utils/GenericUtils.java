@@ -1,5 +1,6 @@
 package utils;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -38,7 +39,7 @@ public class GenericUtils {
 		return jsonObject;
 	}
 
-	public void ExcelReader(String Path) throws Throwable {
+	public static void ExcelReader(String Path) throws Throwable {
 		FileInputStream fs = new FileInputStream(Path);
 		XSSFWorkbook wb = new XSSFWorkbook(fs);
 		XSSFSheet sheet = wb.getSheetAt(0);
@@ -46,11 +47,48 @@ public class GenericUtils {
 		Cell cell = (Cell) row.getCell(0);
 	}
 
-	public void PropertiesFileReader(String Path) throws IOException {
-		FileReader reader = new FileReader(Path);
+	public static Properties PropertiesFileReader(String Path) {
+		String path = System.getProperty("user.dir") + Path;
+		FileReader reader = null;
+		try {
+			reader = new FileReader(path);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		Properties prop = new Properties();
-		prop.load(reader);
-		return;
+		try {
+			prop.load(reader);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return prop;
+	}
+
+	public static String CsvFileReader(String Path) {
+		String path = System.getProperty("user.dir") + Path;
+		FileReader reader = null;
+		String csvData = null;
+		try {
+			reader = new FileReader(path);
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+		BufferedReader bfReader = new BufferedReader(reader);
+		String line;
+		try {
+			while ((line = bfReader.readLine()) != null) {
+				String[] data = line.split(" ");
+				for (String detail : data) {
+					csvData += detail + "\t";
+				}
+				csvData += "\n";
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return csvData;
 	}
 
 }
