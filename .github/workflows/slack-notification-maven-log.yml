@@ -33,7 +33,7 @@ jobs:
         mvn -B test | tee maven-output.log
         
         # Extract test results from Maven output
-        $Results = Get-Content -Path maven-output.log -Raw
+        $testResults = Get-Content -Path maven-output.log -Raw
         
         # Extract counts using regex
         if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
@@ -56,44 +56,19 @@ jobs:
         Write-Output "::set-output name=errorTests::$errorTests"
         Write-Output "::set-output name=skippedTests::$skippedTests"
 
+    - name: Test Summary
+      id: test_summary
+      uses: test-summary/action@v2
+      with:
+        paths: "target/surefire-reports/testng-results.xml"
+      if: always()
+
     - name: Notify Slack with Test Results
       if: always()
-      shell: pwsh
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-      run: |
-        # Generate the URL to the artifacts location
-        $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
-        
-        # Retrieve outputs from previous step
-        $totalTests = $env:totalTests
-        $passedTests = $env:passedTests
-        $failedTests = $env:failedTests
-        $errorTests = $env:errorTests
-        $skippedTests = $env:skippedTests
-        
-        # Prepare the Slack message payload
-        $jsonBody = @{
-          text = "API Tests have completed. Results are attached."
-          attachments = @(
-            @{
-              fallback = "Test results are attached."
-              color = if ($failedTests -gt 0 -or $errorTests -gt 0) { "#FF0000" } elseif ($skippedTests -gt 0) { "#FFA500" } else { "#36a64f" }
-              title = "Test Results"
-              text = "Total: $($totalTests), Passed: $($passedTests), Failed: $($failedTests), Errors: $($errorTests), Skipped: $($skippedTests). [View detailed report]($artifactsUrl)"
-              fields = @(
-                @{
-                  title = "Build Status"
-                  value = "${{ job.status }}"
-                  short = $true
-                }
-              )
-            }
-          )
-        }
-        
-        # Convert the hashtable to JSON
-        $jsonBody = $jsonBody | ConvertTo-Json -Depth 20
-        
-        # Send JSON payload to Slack
-        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
+      uses: slackapi/slack-github-action@v1.19.0
+      with:
+        payload: |-
+          {
+            "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
+            "channel": "github-action"
+          }
