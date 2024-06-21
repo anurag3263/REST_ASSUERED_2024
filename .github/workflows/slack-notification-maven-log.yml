@@ -33,7 +33,7 @@ jobs:
         mvn -B test | tee maven-output.log
         
         # Extract test results from Maven output
-        $testResults = Get-Content -Path maven-output.log -Raw
+        $Results = Get-Content -Path maven-output.log -Raw
         
         # Extract counts using regex
         if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
