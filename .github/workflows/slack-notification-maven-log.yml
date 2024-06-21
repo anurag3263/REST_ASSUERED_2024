@@ -36,19 +36,23 @@ jobs:
         $testResults = Get-Content -Path maven-output.log -Raw
         
         # Extract counts using regex
-        $totalCount = ($testResults | Select-String -Pattern 'Tests run: (\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })[0]
-        $passCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })[0]
-        $failCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[2].Value })[0]
-        $skipCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[4].Value })[0]
-        
-        # Output for verification
-        Write-Output "Total tests: $totalCount, Passed tests: $passCount, Failed tests: $failCount, Skipped tests: $skipCount"
+        if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
+          $totalTests = [int]::Parse($matches[1])
+          $failedTests = [int]::Parse($matches[2])
+          $skippedTests = [int]::Parse($matches[4])
+          $passedTests = $totalTests - $failedTests - $skippedTests
+        } else {
+          Write-Output "No test results found in Maven output."
+          exit 1
+        }
+
+        Write-Output "Total tests: $totalTests, Passed tests: $passedTests, Failed tests: $failedTests, Skipped tests: $skippedTests"
 
         # Set outputs for later steps to use
-        Write-Output "::set-output name=totalTests::$totalCount"
-        Write-Output "::set-output name=passTests::$passCount"
-        Write-Output "::set-output name=failTests::$failCount"
-        Write-Output "::set-output name=skipTests::$skipCount"
+        Write-Output "::set-output name=totalTests::$totalTests"
+        Write-Output "::set-output name=passedTests::$passedTests"
+        Write-Output "::set-output name=failedTests::$failedTests"
+        Write-Output "::set-output name=skippedTests::$skippedTests"
 
     - name: Notify Slack with Test Results
       if: always()
@@ -61,9 +65,9 @@ jobs:
         
         # Retrieve outputs from previous step
         $totalTests = $env:totalTests
-        $passedTests = $env:passTests
-        $failedTests = $env:failTests
-        $skippedTests = $env:skipTests
+        $passedTests = $env:passedTests
+        $failedTests = $env:failedTests
+        $skippedTests = $env:skippedTests
         
         # Prepare the Slack message payload
         $jsonBody = @{
