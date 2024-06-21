@@ -1,0 +1,87 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Java CI with Maven
+
+on:
+  workflow_dispatch:
+    # Manually trigger the workflow
+    # inputs:
+    #   environment:
+    #     description: 'Environment to deploy to'
+    #     required: true
+    #     default: 'production'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: maven
+        
+    - name: Build with Maven and capture test results
+      id: build
+      run: |
+        # Run Maven build and capture output to a log file
+        mvn -B test | tee maven-output.log
+        
+        # Extract test results from Maven output
+        $totalTests = (Get-Content -Path maven-output.log | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' -AllMatches).Matches
+        
+        # Set default values if no matches found
+        if ($totalTests.Count -eq 0) {
+          $totalTests = @('0', '0', '0', '0')
+        } else {
+          $totalTests = $totalTests[0].Groups
+        }
+
+        # Extract counts from the match groups
+        $totalTests = $totalTests[1].Value
+        $failedTests = [int]$totalTests[2].Value + [int]$totalTests[3].Value
+
+    - name: Notify Slack with Test Results
+      if: always()
+      shell: pwsh
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+      run: |
+        # Generate the URL to the artifacts location
+        $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+        
+        # Prepare the Slack message payload
+        $jsonBody = @{
+          text = "API Tests have completed. Results are attached."
+          attachments = @(
+            @{
+              fallback = "Test results are attached."
+              color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
+              title = "Test Results"
+              text = "Total: $totalTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
+              fields = @(
+                @{
+                  title = "Build Status"
+                  value = "${{ job.status }}"
+                  short = $true
+                }
+              )
+            }
+          )
+        }
+        
+        # Convert the hashtable to JSON
+        $jsonBody = $jsonBody | ConvertTo-Json
+        
+        # Send JSON payload to Slack
+        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
