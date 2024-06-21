@@ -72,3 +72,5 @@ jobs:
             "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
             "channel": "github-action"
           }
+       # Provide your bot token or webhook URL here
+        botToken: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
