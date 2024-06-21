@@ -67,10 +67,10 @@ jobs:
       if: always()
       uses: slackapi/slack-github-action@v1.19.0
       with:
-        payload: |-
+        slack-message: |-
           {
             "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
             "channel": "github-action"
           }
        # Provide your bot token or webhook URL here
-        webhookUrl: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+        payload: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
