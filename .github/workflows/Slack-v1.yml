@@ -8,18 +8,16 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
     
       - name: Set up JDK 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v2
         with:
           java-version: '11'
-          distribution: 'temurin'
-          cache: maven
 
       - name: Run Maven tests
         run: mvn clean test
@@ -43,8 +41,32 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports
 
+      - name: Install xmlstarlet
+        run: sudo apt-get update && sudo apt-get install -y xmlstarlet
+
       - name: Send Slack notification
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"Maven tests completed successfully!"}' $SLACK_WEBHOOK_URL
+          # Function to parse Surefire XML report and extract test counts
+          parse_surefire_report() {
+            local surefire_report="$1"
+            local total_tests=$(xml sel -t -v "count(/testsuite/testcase)" "$surefire_report")
+            local passed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='passed'])" "$surefire_report")
+            local failed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='failed'])" "$surefire_report")
+            local skipped_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='skipped'])" "$surefire_report")
+
+            echo "Total tests: $total_tests"
+            echo "Passed tests: $passed_tests"
+            echo "Failed tests: $failed_tests"
+            echo "Skipped tests: $skipped_tests"
+          }
+
+          # Path to Surefire XML report
+          surefire_report_path="target/surefire-reports/*.xml"
+
+          # Extract test counts
+          test_counts=$(parse_surefire_report "$surefire_report_path")
+
+          # Send Slack notification with test counts
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $test_counts\"}" "$SLACK_WEBHOOK_URL"
