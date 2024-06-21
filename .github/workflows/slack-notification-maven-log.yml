@@ -60,7 +60,7 @@ jobs:
       id: test_summary
       uses: test-summary/action@v2
       with:
-        paths: "target/surefire-reports/testng-results.xml"
+        paths: "target/surefire-reports/**/TEST-*.xml"
       if: always()
 
     - name: Notify Slack with Test Results
