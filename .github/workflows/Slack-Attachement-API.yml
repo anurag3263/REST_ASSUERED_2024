@@ -47,40 +47,46 @@ jobs:
 
     - name: Notify Slack with Test Results
       if: always()
-      shell: pwsh
+      # shell: pwsh
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-      run: |
-        # Parse HTML report to extract test results
-        $totalTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
-        $passedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
-        $failedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
+      with:
+        slack-message: |-
+          {
+            "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
+            "channel": "github-action"
+          }
+      # run: |
+      #   # Parse HTML report to extract test results
+      #   $totalTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
+      #   $passedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
+      #   $failedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
         
-        # Generate the URL to the artifacts location
-        $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+      #   # Generate the URL to the artifacts location
+      #   $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
         
-        # Send notification to Slack
-        $jsonBody = @{
-          text = "API Tests have completed. Results are attached."
-          attachments = @(
-            @{
-              fallback = "Test results are attached."
-              color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
-              title = "Test Results"
-              text = "Total: $totalTests, Passed: $passedTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
-              fields = @(
-                @{
-                  title = "Build Status"
-                  value = "${{ job.status }}"
-                  short = $true
-                }
-              )
-            }
-          )
-        }
+      #   # Send notification to Slack
+      #   $jsonBody = @{
+      #     text = "API Tests have completed. Results are attached."
+      #     attachments = @(
+      #       @{
+      #         fallback = "Test results are attached."
+      #         color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
+      #         title = "Test Results"
+      #         text = "Total: $totalTests, Passed: $passedTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
+      #         fields = @(
+      #           @{
+      #             title = "Build Status"
+      #             value = "${{ job.status }}"
+      #             short = $true
+      #           }
+      #         )
+      #       }
+      #     )
+      #   }
         
         # Convert the hashtable to JSON
-        $jsonBody = $jsonBody | ConvertTo-Json -Depth 3  # Adjust depth as needed
+        # $jsonBody = $jsonBody | ConvertTo-Json -Depth 3  # Adjust depth as needed
         
         # Send JSON payload to Slack
-        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
+        # Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
