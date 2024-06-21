@@ -57,19 +57,11 @@ jobs:
       if: always()
       uses: rtCamp/action-slack-notify@v2
       with:
-        channel: 'your-channel-name'  # Replace with your Slack channel name or ID
-        status: ${{ job.status }}
-        text: |
-          API Tests have completed. Results are attached.
-          
-          Test Results
-          Total: ${{ steps.build.outputs.totalTests }}
-          Passed: ${{ steps.build.outputs.passedTests }}
-          Failed: ${{ steps.build.outputs.failedTests }}
-          Errors: ${{ steps.build.outputs.errorTests }}
-          Skipped: ${{ steps.build.outputs.skippedTests }}.
-          
-          [View detailed report](${{ steps.build.outputs.artifactsUrl }})
-        username: 'GitHub Actions'
-        icon_emoji: ':github:'
         slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        fields: |
+          [
+            {
+              "title": "API Tests have completed",
+              "value": "Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nErrors: ${{ steps.build.outputs.errorTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+            }
+          ]
