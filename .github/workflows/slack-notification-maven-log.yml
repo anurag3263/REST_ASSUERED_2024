@@ -55,8 +55,9 @@ jobs:
 
     - name: Notify Slack with Test Results
       if: always()
-      uses: 8398a7/action-slack@v3
+      uses: rtCamp/action-slack-notify@v2
       with:
+        channel: 'your-channel-name'  # Replace with your Slack channel name or ID
         status: ${{ job.status }}
         text: |
           API Tests have completed. Results are attached.
@@ -69,8 +70,6 @@ jobs:
           Skipped: ${{ steps.build.outputs.skippedTests }}.
           
           [View detailed report](${{ steps.build.outputs.artifactsUrl }})
-        channel: 'your-channel-name'  # Replace with your Slack channel name or ID
-        custom_payload: '{"username": "GitHub Actions", "icon_emoji": ":github:"}'
-        slack_token: ${{ secrets.SLACK_WEBHOOK_URL }}
-        github_token: ${{ secrets.GIT_TOKEN }}
-        github_base_url: 'https://github.com'
+        username: 'GitHub Actions'
+        icon_emoji: ':github:'
+        slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
