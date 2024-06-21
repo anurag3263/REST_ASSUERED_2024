@@ -73,4 +73,4 @@ jobs:
             "channel": "github-action"
           }
        # Provide your bot token or webhook URL here
-        botToken: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+        webhookUrl: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
