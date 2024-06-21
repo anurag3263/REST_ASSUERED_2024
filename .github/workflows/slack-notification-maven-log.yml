@@ -37,9 +37,9 @@ jobs:
         
         # Extract counts using regex
         if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
-          $totalTests = [int]::Parse($matches[1])
-          $failedTests = [int]::Parse($matches[2])
-          $skippedTests = [int]::Parse($matches[4])
+          $totalTests = [int]$matches[1]
+          $failedTests = [int]$matches[2]
+          $skippedTests = [int]$matches[4]
           $passedTests = $totalTests - $failedTests - $skippedTests
         } else {
           Write-Output "No test results found in Maven output."
@@ -77,7 +77,7 @@ jobs:
               fallback = "Test results are attached."
               color = if ($failedTests -gt 0) { "#FF0000" } elseif ($skippedTests -gt 0) { "#FFA500" } else { "#36a64f" }
               title = "Test Results"
-              text = "Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests. [View detailed report]($artifactsUrl)"
+              text = "Total: $($totalTests), Passed: $($passedTests), Failed: $($failedTests), Skipped: $($skippedTests). [View detailed report]($artifactsUrl)"
               fields = @(
                 @{
                   title = "Build Status"
