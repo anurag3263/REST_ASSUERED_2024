@@ -23,14 +23,7 @@ jobs:
         with:
           java-version: '11'
 
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
-
+      
       - name: Run Maven tests
         run: mvn clean test
 
