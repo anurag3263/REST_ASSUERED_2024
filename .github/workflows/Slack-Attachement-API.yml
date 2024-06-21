@@ -80,7 +80,7 @@ jobs:
         }
         
         # Convert the hashtable to JSON
-        $jsonBody = $jsonBody | ConvertTo-Json
+        $jsonBody = $jsonBody | ConvertTo-Json -Depth 3  # Adjust depth as needed
         
         # Send JSON payload to Slack
         Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
