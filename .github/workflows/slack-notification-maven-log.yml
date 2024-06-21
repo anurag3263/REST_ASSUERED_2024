@@ -39,19 +39,21 @@ jobs:
         if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
           $totalTests = [int]$matches[1]
           $failedTests = [int]$matches[2]
+          $errorTests = [int]$matches[3]
           $skippedTests = [int]$matches[4]
-          $passedTests = $totalTests - $failedTests - $skippedTests
+          $passedTests = $totalTests - $failedTests - $errorTests - $skippedTests
         } else {
           Write-Output "No test results found in Maven output."
           exit 1
         }
 
-        Write-Output "Total tests: $totalTests, Passed tests: $passedTests, Failed tests: $failedTests, Skipped tests: $skippedTests"
+        Write-Output "Total tests: $totalTests, Passed tests: $passedTests, Failed tests: $failedTests, Error tests: $errorTests, Skipped tests: $skippedTests"
 
         # Set outputs for later steps to use
         Write-Output "::set-output name=totalTests::$totalTests"
         Write-Output "::set-output name=passedTests::$passedTests"
         Write-Output "::set-output name=failedTests::$failedTests"
+        Write-Output "::set-output name=errorTests::$errorTests"
         Write-Output "::set-output name=skippedTests::$skippedTests"
 
     - name: Notify Slack with Test Results
@@ -67,6 +69,7 @@ jobs:
         $totalTests = $env:totalTests
         $passedTests = $env:passedTests
         $failedTests = $env:failedTests
+        $errorTests = $env:errorTests
         $skippedTests = $env:skippedTests
         
         # Prepare the Slack message payload
@@ -75,9 +78,9 @@ jobs:
           attachments = @(
             @{
               fallback = "Test results are attached."
-              color = if ($failedTests -gt 0) { "#FF0000" } elseif ($skippedTests -gt 0) { "#FFA500" } else { "#36a64f" }
+              color = if ($failedTests -gt 0 -or $errorTests -gt 0) { "#FF0000" } elseif ($skippedTests -gt 0) { "#FFA500" } else { "#36a64f" }
               title = "Test Results"
-              text = "Total: $($totalTests), Passed: $($passedTests), Failed: $($failedTests), Skipped: $($skippedTests). [View detailed report]($artifactsUrl)"
+              text = "Total: $($totalTests), Passed: $($passedTests), Failed: $($failedTests), Errors: $($errorTests), Skipped: $($skippedTests). [View detailed report]($artifactsUrl)"
               fields = @(
                 @{
                   title = "Build Status"
