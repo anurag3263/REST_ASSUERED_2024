@@ -76,4 +76,4 @@ jobs:
           
           [View detailed report](${{ steps.build.outputs.artifactsUrl }})
         channel: 'github-action'  # Replace with your Slack channel name or ID
-        github_token: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+        webhook_url: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
