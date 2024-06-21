@@ -75,5 +75,8 @@ jobs:
           Skipped: ${{ steps.build.outputs.skippedTests }}.
           
           [View detailed report](${{ steps.build.outputs.artifactsUrl }})
-        channel: 'github-action'  # Replace with your Slack channel name or ID
-        webhook_url: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+        channel: 'your-channel-name'  # Replace with your Slack channel name or ID
+        custom_payload: '{"username": "GitHub Actions", "icon_emoji": ":github:"}'
+        github_token: ${{ secrets.GIT_TOKEN }}
+        github_base_url: 'https://github.com'
+        if_mention: 'failure'
