@@ -35,19 +35,20 @@ jobs:
         # Extract test results from Maven output
         $testResults = Get-Content -Path maven-output.log -Raw
         
-        # Match the test results pattern
-        $matches = $testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)'
+        # Extract counts using regex
+        $totalCount = ($testResults | Select-String -Pattern 'Tests run: (\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })[0]
+        $passCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[1].Value })[0]
+        $failCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[2].Value })[0]
+        $skipCount = ($testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' | ForEach-Object { $_.Matches.Groups[4].Value })[0]
+        
+        # Output for verification
+        Write-Output "Total tests: $totalCount, Passed tests: $passCount, Failed tests: $failCount, Skipped tests: $skipCount"
 
-        # Check if matches were found
-        if ($matches) {
-          $totalTests = [int]$matches.Matches.Groups[1].Value
-          $failedTests = [int]$matches.Matches.Groups[2].Value
-        } else {
-          Write-Output "No test results found in Maven output."
-          exit 1
-        }
-
-        Write-Output "Total tests: $totalTests, Failed tests: $failedTests"
+        # Set outputs for later steps to use
+        Write-Output "::set-output name=totalTests::$totalCount"
+        Write-Output "::set-output name=passTests::$passCount"
+        Write-Output "::set-output name=failTests::$failCount"
+        Write-Output "::set-output name=skipTests::$skipCount"
 
     - name: Notify Slack with Test Results
       if: always()
@@ -58,15 +59,21 @@ jobs:
         # Generate the URL to the artifacts location
         $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
         
+        # Retrieve outputs from previous step
+        $totalTests = $env:totalTests
+        $passedTests = $env:passTests
+        $failedTests = $env:failTests
+        $skippedTests = $env:skipTests
+        
         # Prepare the Slack message payload
         $jsonBody = @{
           text = "API Tests have completed. Results are attached."
           attachments = @(
             @{
               fallback = "Test results are attached."
-              color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
+              color = if ($failedTests -gt 0) { "#FF0000" } elseif ($skippedTests -gt 0) { "#FFA500" } else { "#36a64f" }
               title = "Test Results"
-              text = "Total: $($totalTests), Failed: $($failedTests). [View detailed report]($artifactsUrl)"
+              text = "Total: $totalTests, Passed: $passedTests, Failed: $failedTests, Skipped: $skippedTests. [View detailed report]($artifactsUrl)"
               fields = @(
                 @{
                   title = "Build Status"
@@ -78,7 +85,7 @@ jobs:
           )
         }
         
-        # Convert the hashtable to JSON with increased depth limit
+        # Convert the hashtable to JSON
         $jsonBody = $jsonBody | ConvertTo-Json -Depth 20
         
         # Send JSON payload to Slack
