@@ -33,10 +33,10 @@ jobs:
         mvn -B test | tee maven-output.log
         
         # Extract test results from Maven output
-        $testResults = Get-Content -Path maven-output.log -Raw
+        $Results = Get-Content -Path maven-output.log -Raw
         
         # Match the test results pattern
-        $matches = $testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)'
+        $matches = $Results | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)'
 
         # Check if matches were found
         if ($matches) {
@@ -79,7 +79,7 @@ jobs:
         }
         
         # Convert the hashtable to JSON
-        $jsonBody = $jsonBody | ConvertTo-Json
+        $jsonBody = $jsonBody | ConvertTo-Json -Depth 20
         
         # Send JSON payload to Slack
         Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
