@@ -34,22 +34,9 @@ jobs:
     - name: Build with Maven and capture test results
       id: build
       run: |
-        # Run Maven build and capture output to a log file
         mvn -B test | tee maven-output.log
-        
-        # Extract test results from Maven output
-        $totalTests = (Get-Content -Path maven-output.log | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' -AllMatches).Matches
-        
-        # Set default values if no matches found
-        if ($totalTests.Count -eq 0) {
-          $totalTests = @('0', '0', '0', '0')
-        } else {
-          $totalTests = $totalTests[0].Groups
-        }
-
-        # Extract counts from the match groups
-        $totalTests = $totalTests[1].Value
-        $failedTests = [int]$totalTests[2].Value + [int]$totalTests[3].Value
+        # Capture test results from Maven output
+        totalTests = (Get-Content -Path maven-output.log | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)' -AllMatches).Matches
 
     - name: Notify Slack with Test Results
       if: always()
@@ -57,31 +44,9 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
       run: |
-        # Generate the URL to the artifacts location
-        $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
-        
-        # Prepare the Slack message payload
-        $jsonBody = @{
-          text = "API Tests have completed. Results are attached."
-          attachments = @(
-            @{
-              fallback = "Test results are attached."
-              color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
-              title = "Test Results"
-              text = "Total: $totalTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
-              fields = @(
-                @{
-                  title = "Build Status"
-                  value = "${{ job.status }}"
-                  short = $true
-                }
-              )
-            }
-          )
-        }
-        
-        # Convert the hashtable to JSON
-        $jsonBody = $jsonBody | ConvertTo-Json
-        
-        # Send JSON payload to Slack
-        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
+        # Get test results from the previous step
+        $totalTests = $env:totalTests
+
+        # Extract counts from the match
+        $totalTests = if ($totalTests.Success) { $totalTests.Groups[1].Value } else { '0' }
+        $failedTests = if ($totalTests.Success) { $totalTests.Groups[2].Value } else { '0' }
