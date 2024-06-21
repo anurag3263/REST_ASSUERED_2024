@@ -33,10 +33,10 @@ jobs:
         mvn -B test | tee maven-output.log
         
         # Extract test results from Maven output
-        $Results = Get-Content -Path maven-output.log -Raw
+        $testResults = Get-Content -Path maven-output.log -Raw
         
         # Match the test results pattern
-        $matches = $Results | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)'
+        $matches = $testResults | Select-String -Pattern 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)'
 
         # Check if matches were found
         if ($matches) {
@@ -66,7 +66,7 @@ jobs:
               fallback = "Test results are attached."
               color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
               title = "Test Results"
-              text = "Total: $totalTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
+              text = "Total: $($totalTests), Failed: $($failedTests). [View detailed report]($artifactsUrl)"
               fields = @(
                 @{
                   title = "Build Status"
@@ -78,7 +78,7 @@ jobs:
           )
         }
         
-        # Convert the hashtable to JSON
+        # Convert the hashtable to JSON with increased depth limit
         $jsonBody = $jsonBody | ConvertTo-Json -Depth 20
         
         # Send JSON payload to Slack
