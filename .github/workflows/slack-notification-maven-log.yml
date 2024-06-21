@@ -1,4 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# This workflow will build a Java project with Maven, capture test results, and notify Slack with the test results summary.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
 # This workflow uses actions that are not certified by GitHub.
@@ -65,12 +65,18 @@ jobs:
 
     - name: Notify Slack with Test Results
       if: always()
-      # shell: pwsh
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
+      uses: "8398a7/action-slack@v3"
       with:
-        slack-message: |-
-          {
-            "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
-            "channel": "github-action"
-          }
+        channel: 'github-action'  # Replace with your Slack channel name or ID
+        text: |
+          API Tests have completed. Results are attached.
+        
+          Test Results
+          Total: ${{ steps.build.outputs.totalTests }}
+          Passed: ${{ steps.build.outputs.passedTests }}
+          Failed: ${{ steps.build.outputs.failedTests }}
+          Errors: ${{ steps.build.outputs.errorTests }}
+          Skipped: ${{ steps.build.outputs.skippedTests }}.
+        
+          [View detailed report](${{ steps.build.outputs.artifactsUrl }})
+        webhook_url: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
