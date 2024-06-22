@@ -20,19 +20,8 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: |
-          # Run Maven tests and capture output
-          mvn -B test | tee maven_output.log
-          
-          # Parse Maven output to extract test results
-          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" maven_output.log | tail -1)
-          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" maven_output.log | tail -1)
-          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" maven_output.log | tail -1)
-          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" maven_output.log | tail -1)
-          echo "Total Tests: $total_tests"
-          echo "Passed Tests: $passed_tests"
-          echo "Failed Tests: $failed_tests"
-          echo "Skipped Tests: $skipped_tests"
+        run: mvn -B test
+
       - name: Archive surefire test results
         if: always()
         uses: actions/upload-artifact@v2
@@ -40,23 +29,39 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports
 
+      - name: Parse Surefire XML Reports
+        id: parse_xml_reports
+        run: |
+          # Install xmlstarlet if not already available
+          sudo apt-get update
+          sudo apt-get install -y xmlstarlet
+
+          # Initialize variables
+          total_tests=0
+          passed_tests=0
+          failed_tests=0
+          skipped_tests=0
+
+          # Loop through all XML files and extract counts
+          for file in target/surefire-reports/junitreports/TEST-*.xml; do
+            total_tests=$((total_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase)" "$file")))
+            passed_tests=$((passed_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='passed'])" "$file")))
+            failed_tests=$((failed_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='failed'])" "$file")))
+            skipped_tests=$((skipped_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='skipped'])" "$file")))
+          done
+
+          # Set outputs for downstream steps to use
+          echo "::set-output name=totalTests::$total_tests"
+          echo "::set-output name=passedTests::$passed_tests"
+          echo "::set-output name=failedTests::$failed_tests"
+          echo "::set-output name=skippedTests::$skipped_tests"
+
       - name: Test Summary
         id: test_summary
         uses: test-summary/action@v2
         with:
           paths: "target/surefire-reports/junitreports/TEST-*.xml"
         if: always()
-
-      - name: Debug test summary outputs
-        run: |
-          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" result.txt | tail -1)
-          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" result.txt | tail -1)
-          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" result.txt | tail -1)
-          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" result.txt | tail -1)
-          echo "Total Tests: $total_tests"
-          echo "Passed Tests: $passed_tests"
-          echo "Failed Tests: $failed_tests"
-          echo "Skipped Tests: $skipped_tests"
 
   notify-slack:
     runs-on: ubuntu-latest
@@ -67,12 +72,12 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           BUILD_STATUS: ${{ job.status }}
-          TOTAL_TESTS: ${{ steps.test_summary.outputs.totalTests }}
-          PASSED_TESTS: ${{ steps.test_summary.outputs.passedTests }}
-          FAILED_TESTS: ${{ steps.test_summary.outputs.failedTests }}
-          SKIPPED_TESTS: ${{ steps.test_summary.outputs.skippedTests }}
+          TOTAL_TESTS: ${{ steps.parse_xml_reports.outputs.totalTests }}
+          PASSED_TESTS: ${{ steps.parse_xml_reports.outputs.passedTests }}
+          FAILED_TESTS: ${{ steps.parse_xml_reports.outputs.failedTests }}
+          SKIPPED_TESTS: ${{ steps.parse_xml_reports.outputs.skippedTests }}
         run: |
-          slack_message="Results are attached.\n\nBUILD_STATUS:${{ job.status }}\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          slack_message="Results are attached.\n\nBUILD_STATUS: $BUILD_STATUS\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
 
       - name: Send custom JSON data to Slack workflow
@@ -87,7 +92,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Maven Test Results*\nBUILD_STATUS: ${{ job.status }}\nTotal Tests: ${{ steps.test_summary.outputs.totalTests }}\nPassed Tests: ${{ steps.test_summary.outputs.passedTests }}\nFailed Tests: ${{ steps.test_summary.outputs.failedTests }}\nSkipped Tests: ${{ steps.test_summary.outputs.skippedTests }}"
+                    "text": "*Maven Test Results*\nBUILD_STATUS: $BUILD_STATUS\nTotal Tests: $TOTAL_TESTS\nPassed Tests: $PASSED_TESTS\nFailed Tests: $FAILED_TESTS\nSkipped Tests: $SKIPPED_TESTS"
                   }
                 }
               ]
