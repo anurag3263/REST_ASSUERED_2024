@@ -35,8 +35,8 @@ jobs:
     - name: Publish Test Report
       uses: actions/upload-artifact@v2
       with:
-        name: test-reports
-        path: target/cucumber-html-reports
+        name: surefire-reports
+        path: target/surefire-reports
 
     - name: Test Summary
       id: test_summary
@@ -50,16 +50,16 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: test-results
-        path: target/cucumber-html-reports  # Adjust the path to your test result HTML files
+        path: target/extent.html  # Adjust the path to your test result HTML files
 
     - name: Parse HTML report for test results
       id: parse-html
       run: |
-        $totalTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
-        $passedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
-        $failedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
-        $errorTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="error"' -AllMatches).Matches.Count
-        $skippedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="skipped"' -AllMatches).Matches.Count
+        $totalTests = (Get-Content -Path target\extent.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
+        $passedTests = (Get-Content -Path target\extent.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
+        $failedTests = (Get-Content -Path target\extent.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
+        $errorTests = (Get-Content -Path target\extent.html -Raw | Select-String -Pattern 'class="error"' -AllMatches).Matches.Count
+        $skippedTests = (Get-Content -Path target\extent.html -Raw | Select-String -Pattern 'class="skipped"' -AllMatches).Matches.Count
 
         # Calculate total tests (just in case any were missed by other counts)
         $totalTests = $passedTests + $failedTests + $errorTests + $skippedTests
