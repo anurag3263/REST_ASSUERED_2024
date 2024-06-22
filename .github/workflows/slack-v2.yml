@@ -71,10 +71,10 @@ jobs:
       - name: Send Slack notification
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          TOTAL_TESTS: ${{ steps.extract-counts.outputs.totalTests }}
-          PASSED_TESTS: ${{ steps.extract-counts.outputs.passedTests }}
-          FAILED_TESTS: ${{ steps.extract-counts.outputs.failedTests }}
-          SKIPPED_TESTS: ${{ steps.extract-counts.outputs.skippedTests }}
+          TOTAL_TESTS: ${{ steps.build.outputs.totalTests }}
+          PASSED_TESTS: ${{ steps.build.outputs.passedTests }}
+          FAILED_TESTS: ${{ steps.build.outputs.failedTests }}
+          SKIPPED_TESTS: ${{ steps.build.outputs.skippedTests }}
         run: |
           slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
