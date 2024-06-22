@@ -19,25 +19,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run Maven tests and capture results
-        id: maven-tests
-        run: |
-          mvn clean test | tee result.txt
-          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" result.txt | tail -1)
-          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" result.txt | tail -1)
-          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" result.txt | tail -1)
-          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" result.txt | tail -1)
-          echo "::set-output name=totalTests::$total_tests"
-          echo "::set-output name=passedTests::$passed_tests"
-          echo "::set-output name=failedTests::$failed_tests"
-          echo "::set-output name=skippedTests::$skipped_tests"
+      - name: Build with Maven
+        run: mvn -B test
 
-      - name: Archive surefire test results
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: surefire-reports
-          path: target/surefire-reports
+      # - name: Archive surefire test results
+      #   if: always()
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: surefire-reports
+      #     path: target/surefire-reports
 
       - name: Archive cucumber test results
         if: always()
