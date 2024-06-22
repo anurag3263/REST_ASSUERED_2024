@@ -21,19 +21,8 @@ jobs:
         cache: maven
 
      - name: Run Maven tests
-       id: maven-tests
-       run: |
-         mvn clean test | tee result.txt
-         total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" result.txt)
-         passed_tests=$(grep -oPm1 "(?<=Success: )\d+" result.txt)
-         failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" result.txt)
-         error_tests=$(grep -oPm1 "(?<=Errors: )\d+" result.txt)
-         skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" result.txt)
-         echo "::set-output name=totalTests::$total_tests"
-         echo "::set-output name=passedTests::$passed_tests"
-         echo "::set-output name=failedTests::$failed_tests"
-         echo "::set-output name=errorTests::$error_tests"
-         echo "::set-output name=skippedTests::$skipped_tests"
+       run: mvn -B test
+         
 
      - name: Archive test results
        if: always()
