@@ -41,14 +41,35 @@ jobs:
             Test Results:
             Total: ${{ github.event.pull_request.head.sha }}
             [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-     - name: Junit report in Slack
-       if: always()
+
+     - name: Checkout repository
+       uses: actions/checkout@v2
+      
+     - name: List contents of target/surefire-reports directory
+       run: ls -R target/surefire-reports/
+
+     - name: Print current working directory
+       run: pwd
+
+     - name: Print out environment variables
+       run: env
+
+     - name: Verify file existence
+       run: |
+          if [ -f "target/surefire-reports/TEST-TestSuite.xml" ]; then
+            echo "Test report file found!"
+          else
+            echo "ERROR: Test report file not found!"
+            exit 1
+          fi
+
+     - name: Run JUnit Report Slack action
        uses: qafficient/junit-report-slack@v1.0.0
        with:
-           testRunName: Anurag Rest Api Result
-           slackToken: ${{ secrets.SLACK_WEBHOOK_URL }}
-           slackChannelId: C078VCP3VK8
-           testOutputPath: /target/surefire-reports/TEST-TestSuite.xml
+          testRunName: "Anurag Rest Api Result"
+          slackToken: ${{ secrets.SLACK_TOKEN }}
+          slackChannelId: C078VCP3VK8
+          testOutputPath: "target/surefire-reports/TEST-TestSuite.xml"
       # - name: Notify Slack
       #   if: always()
       #   uses: rtCamp/action-slack-notify@v2
