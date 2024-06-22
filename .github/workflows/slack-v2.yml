@@ -41,6 +41,7 @@ jobs:
           path: target/surefire-reports
 
       - name: Archive test results
+        if: always()
         uses: actions/upload-artifact@v2
         with:
          name: test-results
@@ -55,10 +56,11 @@ jobs:
         uses: slackapi/slack-github-action@v1.19.0
         with:
          payload: |-
-                 {
-                   "message": "${{ steps.test_summary.outputs.passed }}/${{ steps.test_summary.outputs.total }} tests passed"
-                  }
-        if: always()
+            {
+              "message": "${{ steps.test_summary.outputs.passed }}/${{ steps.test_summary.outputs.total }} tests passed"
+            }
+         webhookUrl: ${{ secrets.SLACK_WEBHOOK_URL }}
+         if: always()
 
   slack_notification:
     name: Notify Slack on test results
