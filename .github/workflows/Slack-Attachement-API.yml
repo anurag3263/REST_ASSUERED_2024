@@ -37,6 +37,13 @@ jobs:
       with:
         name: test-reports
         path: target/cucumber-html-reports
+
+    - name: Test Summary
+      id: test_summary
+      uses: test-summary/action@v2
+      with:
+          paths: "target/surefire-reports/junitreports/TEST-*.xml"
+      if: always()
         
     - name: Save test results
       if: always()
@@ -45,48 +52,37 @@ jobs:
         name: test-results
         path: target/cucumber-html-reports  # Adjust the path to your test result HTML files
 
+    - name: Parse HTML report for test results
+      id: parse-html
+      run: |
+        $totalTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
+        $passedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
+        $failedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
+        $errorTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="error"' -AllMatches).Matches.Count
+        $skippedTests = (Get-Content -Path target\cucumber-html-reports/index.html -Raw | Select-String -Pattern 'class="skipped"' -AllMatches).Matches.Count
+
+        # Calculate total tests (just in case any were missed by other counts)
+        $totalTests = $passedTests + $failedTests + $errorTests + $skippedTests
+
+        # Set outputs for later steps to use
+        echo "::set-output name=totalTests::$totalTests"
+        echo "::set-output name=passedTests::$passedTests"
+        echo "::set-output name=failedTests::$failedTests"
+        echo "::set-output name=errorTests::$errorTests"
+        echo "::set-output name=skippedTests::$skippedTests"
+
     - name: Notify Slack with Test Results
       if: always()
-      # shell: pwsh
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-      with:
-        slack-message: |-
-          {
-            "message": "API Tests have completed. Results are attached.\n\nTest Results\nTotal: ${{ steps.build.outputs.totalTests }}, Passed: ${{ steps.build.outputs.passedTests }}, Failed: ${{ steps.build.outputs.failedTests }}, Errors: ${{ steps.build.outputs.errorTests }}, Skipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report]($artifactsUrl)",
-            "channel": "github-action"
-          }
-      # run: |
-      #   # Parse HTML report to extract test results
-      #   $totalTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern '<tr ' -AllMatches).Matches.Count
-      #   $passedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="passed"' -AllMatches).Matches.Count
-      #   $failedTests = (Get-Content -Path target\surefire-reports/index.html -Raw | Select-String -Pattern 'class="failed"' -AllMatches).Matches.Count
-        
-      #   # Generate the URL to the artifacts location
-      #   $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
-        
-      #   # Send notification to Slack
-      #   $jsonBody = @{
-      #     text = "API Tests have completed. Results are attached."
-      #     attachments = @(
-      #       @{
-      #         fallback = "Test results are attached."
-      #         color = if ($failedTests -gt 0) { "#FF0000" } else { "#36a64f" }
-      #         title = "Test Results"
-      #         text = "Total: $totalTests, Passed: $passedTests, Failed: $failedTests. [View detailed report]($artifactsUrl)"
-      #         fields = @(
-      #           @{
-      #             title = "Build Status"
-      #             value = "${{ job.status }}"
-      #             short = $true
-      #           }
-      #         )
-      #       }
-      #     )
-      #   }
-        
-        # Convert the hashtable to JSON
-        # $jsonBody = $jsonBody | ConvertTo-Json -Depth 3  # Adjust depth as needed
-        
+      run: |
+        $artifactsUrl = "https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+
+        # Construct Slack message JSON
+        $jsonBody = @{
+          message = "API Tests have completed. Results are attached.`n`nTest Results`nTotal: ${{ steps.parse-html.outputs.totalTests }}, Passed: ${{ steps.parse-html.outputs.passedTests }}, Failed: ${{ steps.parse-html.outputs.failedTests }}, Errors: ${{ steps.parse-html.outputs.errorTests }}, Skipped: ${{ steps.parse-html.outputs.skippedTests }}.`n[View detailed report]($artifactsUrl)"
+          channel = "github-action"
+        } | ConvertTo-Json -Depth 20
+
         # Send JSON payload to Slack
-        # Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
+        Invoke-RestMethod -Uri $env:SLACK_WEBHOOK -Method Post -Body $jsonBody -ContentType 'application/json'
