@@ -57,7 +57,7 @@ jobs:
         if: always()
         uses: rtCamp/action-slack-notify@v2
         with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          slack_webhook_url: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
           fields: |
             [
               {
