@@ -1,4 +1,4 @@
-name: Slack notification and Maven Status 
+name: Slack notification and Maven Status
 
 on:
   workflow_dispatch:
@@ -9,59 +9,59 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: maven
-        
-    - name: Build with Maven and capture test results
-      id: build
-      run: |
-        mvn -B test | tee maven-output.log
-        
-        # Extract test results from Maven output
-        $testResults = Get-Content -Path maven-output.log -Raw
-        
-        # Extract counts using regex
-        if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
-          $totalTests = [int]$matches[1]
-          $failedTests = [int]$matches[2]
-          $errorTests = [int]$matches[3]
-          $skippedTests = [int]$matches[4]
-          $passedTests = $totalTests - $failedTests - $errorTests - $skippedTests
-        } else {
-          Write-Output "No test results found in Maven output."
-          exit 1
-        }
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: maven
+          
+      - name: Build with Maven and capture test results
+        id: build
+        run: |
+          mvn -B test | tee maven-output.log
+          
+          # Extract test results from Maven output
+          $testResults = Get-Content -Path maven-output.log -Raw
+          
+          # Extract counts using regex
+          if ($testResults -match 'Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)') {
+            $totalTests = [int]$matches[1]
+            $failedTests = [int]$matches[2]
+            $errorTests = [int]$matches[3]
+            $skippedTests = [int]$matches[4]
+            $passedTests = $totalTests - $failedTests - $errorTests - $skippedTests
+          } else {
+            Write-Output "No test results found in Maven output."
+            exit 1
+          }
+          
+          # Set outputs for later steps to use
+          Write-Output "::set-output name=totalTests::$totalTests"
+          Write-Output "::set-output name=passedTests::$passedTests"
+          Write-Output "::set-output name=failedTests::$failedTests"
+          Write-Output "::set-output name=errorTests::$errorTests"
+          Write-Output "::set-output name=skippedTests::$skippedTests"
+          Write-Output "::set-output name=artifactsUrl::https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
 
-        # Set outputs for later steps to use
-        Write-Output "::set-output name=totalTests::$totalTests"
-        Write-Output "::set-output name=passedTests::$passedTests"
-        Write-Output "::set-output name=failedTests::$failedTests"
-        Write-Output "::set-output name=errorTests::$errorTests"
-        Write-Output "::set-output name=skippedTests::$skippedTests"
-        Write-Output "::set-output name=artifactsUrl::https://github.com/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+      - name: Test Summary
+        id: test_summary
+        uses: test-summary/action@v2
+        with:
+          paths: "target/surefire-reports/junitreports/TEST-*.xml"
+        if: always()
 
-    - name: Test Summary
-      id: test_summary
-      uses: test-summary/action@v2
-      with:
-        paths: "target/surefire-reports/junitreports/TEST-*.xml"
-      if: always()
-
-    - name: Notify Slack with Test Results
-      if: always()
-      uses: rtCamp/action-slack-notify@v2
-      with:
-        slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        fields: |
-          [
-            {
-              "title": "API Tests have completed",
-              "value": "Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nErrors: ${{ steps.build.outputs.errorTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-            }
-          ]
+      - name: Notify Slack with Test Results
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: |
+            [
+              {
+                "title": "API Tests have completed",
+                "value": "Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nErrors: ${{ steps.build.outputs.errorTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              }
+            ]
