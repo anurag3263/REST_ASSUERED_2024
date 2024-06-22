@@ -43,7 +43,7 @@ jobs:
             [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
      - name: Junit report in Slack
        if: always()
-       uses: qafficient/junit-report-slack@v1.0.3
+       uses: qafficient/junit-report-slack@v1.0.0
        with:
            testRunName: Anurag Rest Api Result
            slackToken: ${{ secrets.SLACK_WEBHOOK_URL }}
