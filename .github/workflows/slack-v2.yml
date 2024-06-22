@@ -43,18 +43,11 @@ jobs:
     steps:
       - name: Notify Slack
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}  # Replace with your webhook URL secret
-        run: |
-          slack_message="Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "${SLACK_WEBHOOK_URL}"
-
-      - name: Send Slack notification
-        env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          TOTAL_TESTS: ${{ steps.build.outputs.totalTests }}
-          PASSED_TESTS: ${{ steps.build.outputs.passedTests }}
-          FAILED_TESTS: ${{ steps.build.outputs.failedTests }}
-          SKIPPED_TESTS: ${{ steps.build.outputs.skippedTests }}
+          TOTAL_TESTS: ${{ steps.test_summary.outputs.totalTests }}
+          PASSED_TESTS: ${{ steps.test_summary.outputs.passedTests }}
+          FAILED_TESTS: ${{ steps.test_summary.outputs.failedTests }}
+          SKIPPED_TESTS: ${{ steps.test_summary.outputs.skippedTests }}
         run: |
           slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
