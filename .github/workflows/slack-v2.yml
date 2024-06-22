@@ -44,6 +44,7 @@ jobs:
       - name: Notify Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          BUILD_STATUS: ${{ job.status }}
           TOTAL_TESTS: ${{ steps.test_summary.outputs.totalTests }}
           PASSED_TESTS: ${{ steps.test_summary.outputs.passedTests }}
           FAILED_TESTS: ${{ steps.test_summary.outputs.failedTests }}
