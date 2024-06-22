@@ -20,8 +20,19 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn -B test
-
+        run: |
+          # Run Maven tests and capture output
+          mvn -B test | tee maven_output.log
+          
+          # Parse Maven output to extract test results
+          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" maven_output.log | tail -1)
+          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" maven_output.log | tail -1)
+          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" maven_output.log | tail -1)
+          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" maven_output.log | tail -1)
+          echo "Total Tests: $total_tests"
+          echo "Passed Tests: $passed_tests"
+          echo "Failed Tests: $failed_tests"
+          echo "Skipped Tests: $skipped_tests"
       - name: Archive surefire test results
         if: always()
         uses: actions/upload-artifact@v2
@@ -38,10 +49,14 @@ jobs:
 
       - name: Debug test summary outputs
         run: |
-          echo "Total Tests: ${{ steps.test_summary.outputs.totalTests }}"
-          echo "Passed Tests: ${{ steps.test_summary.outputs.passedTests }}"
-          echo "Failed Tests: ${{ steps.test_summary.outputs.failedTests }}"
-          echo "Skipped Tests: ${{ steps.test_summary.outputs.skippedTests }}"
+          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" result.txt | tail -1)
+          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" result.txt | tail -1)
+          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" result.txt | tail -1)
+          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" result.txt | tail -1)
+          echo "Total Tests: $total_tests"
+          echo "Passed Tests: $passed_tests"
+          echo "Failed Tests: $failed_tests"
+          echo "Skipped Tests: $skipped_tests"
 
   notify-slack:
     runs-on: ubuntu-latest
@@ -57,7 +72,7 @@ jobs:
           FAILED_TESTS: ${{ steps.test_summary.outputs.failedTests }}
           SKIPPED_TESTS: ${{ steps.test_summary.outputs.skippedTests }}
         run: |
-          slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          slack_message="Results are attached.\n\nBUILD_STATUS:${{ job.status }}\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
 
       - name: Send custom JSON data to Slack workflow
