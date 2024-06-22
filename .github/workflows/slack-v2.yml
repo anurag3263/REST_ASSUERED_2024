@@ -22,19 +22,12 @@ jobs:
       - name: Build with Maven
         run: mvn -B test
 
-      # - name: Archive surefire test results
-      #   if: always()
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: surefire-reports
-      #     path: target/surefire-reports
-
-      - name: Archive cucumber test results
+      - name: Archive surefire test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: cucumber-html-reports
-          path: target/cucumber-html-reports
+          name: surefire-reports
+          path: target/surefire-reports
 
       - name: Test Summary
         id: test_summary
@@ -55,41 +48,13 @@ jobs:
           slack_message="Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "${SLACK_WEBHOOK_URL}"
 
-  # slack_notification:
-  #   name: Notify Slack on test results
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   if: always()
-  #   steps:
-  #     - name: Download test results
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: surefire-reports
-  #         path: target/surefire-reports
-
-  #     - name: Install xmlstarlet
-  #       run: sudo apt-get update && sudo apt-get install -y xmlstarlet
-
-  #     # - name: Extract test counts
-  #     #   id: extract-counts
-  #     #   run: |
-  #     #     surefire_report_path="target/surefire-reports/*.xml"
-  #     #     total_tests=$(xml sel -t -v "count(/testsuite/testcase)" "$surefire_report_path")
-  #     #     passed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='passed'])" "$surefire_report_path")
-  #     #     failed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='failed'])" "$surefire_report_path")
-  #     #     skipped_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='skipped'])" "$surefire_report_path")
-  #     #     echo "::set-output name=totalTests::$total_tests"
-  #     #     echo "::set-output name=passedTests::$passed_tests"
-  #     #     echo "::set-output name=failedTests::$failed_tests"
-  #     #     echo "::set-output name=skippedTests::$skipped_tests"
-
-      # - name: Send Slack notification
-      #   env:
-      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      #     TOTAL_TESTS: ${{ steps.build.outputs.totalTests }}
-      #     PASSED_TESTS: ${{ steps.build.outputs.passedTests }}
-      #     FAILED_TESTS: ${{ steps.build.outputs.failedTests }}
-      #     SKIPPED_TESTS: ${{ steps.build.outputs.skippedTests }}
-      #   run: |
-      #     slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-      #     curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TOTAL_TESTS: ${{ steps.build.outputs.totalTests }}
+          PASSED_TESTS: ${{ steps.build.outputs.passedTests }}
+          FAILED_TESTS: ${{ steps.build.outputs.failedTests }}
+          SKIPPED_TESTS: ${{ steps.build.outputs.skippedTests }}
+        run: |
+          slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
