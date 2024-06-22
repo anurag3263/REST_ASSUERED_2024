@@ -55,18 +55,18 @@ jobs:
       - name: Install xmlstarlet
         run: sudo apt-get update && sudo apt-get install -y xmlstarlet
 
-      - name: Extract test counts
-        id: extract-counts
-        run: |
-          surefire_report_path="target/surefire-reports/*.xml"
-          total_tests=$(xml sel -t -v "count(/testsuite/testcase)" "$surefire_report_path")
-          passed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='passed'])" "$surefire_report_path")
-          failed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='failed'])" "$surefire_report_path")
-          skipped_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='skipped'])" "$surefire_report_path")
-          echo "::set-output name=totalTests::$total_tests"
-          echo "::set-output name=passedTests::$passed_tests"
-          echo "::set-output name=failedTests::$failed_tests"
-          echo "::set-output name=skippedTests::$skipped_tests"
+      # - name: Extract test counts
+      #   id: extract-counts
+      #   run: |
+      #     surefire_report_path="target/surefire-reports/*.xml"
+      #     total_tests=$(xml sel -t -v "count(/testsuite/testcase)" "$surefire_report_path")
+      #     passed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='passed'])" "$surefire_report_path")
+      #     failed_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='failed'])" "$surefire_report_path")
+      #     skipped_tests=$(xml sel -t -v "count(/testsuite/testcase[@status='skipped'])" "$surefire_report_path")
+      #     echo "::set-output name=totalTests::$total_tests"
+      #     echo "::set-output name=passedTests::$passed_tests"
+      #     echo "::set-output name=failedTests::$failed_tests"
+      #     echo "::set-output name=skippedTests::$skipped_tests"
 
       - name: Send Slack notification
         env:
