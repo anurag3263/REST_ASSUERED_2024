@@ -30,7 +30,7 @@ jobs:
 
 
      - name: Upload JUnit Test Results and Coverage
-       uses: neochae1/upload-test-result@v1.0.0
+       uses: neochae1/upload-test-result@v1.0.1
        env:
           JUNIT_TEST_RESULTS: build/test-results/test
           JACOCO_REPORTS: /target/surefire-reports/TEST-TestSuite.xml
