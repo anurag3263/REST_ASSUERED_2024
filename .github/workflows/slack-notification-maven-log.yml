@@ -41,7 +41,14 @@ jobs:
             Test Results:
             Total: ${{ github.event.pull_request.head.sha }}
             [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-
+     - name: Junit report in Slack
+       if: always()
+       uses: qafficient/junit-report-slack@v1.0.3
+       with:
+           testRunName: Anurag Rest Api Result
+           slackToken: ${{ secrets.SLACK_WEBHOOK_URL }}
+           slackChannelId: C078VCP3VK8
+           testOutputPath: /target/surefire-reports/TEST-TestSuite.xml
       # - name: Notify Slack
       #   if: always()
       #   uses: rtCamp/action-slack-notify@v2
