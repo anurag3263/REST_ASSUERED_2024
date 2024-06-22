@@ -57,11 +57,5 @@ jobs:
         if: always()
         uses: rtCamp/action-slack-notify@v2
         with:
-          slack_webhook_url: ${{ secrets.SLACK_INCOMING_WEBHOOK }}
-          fields: |
-            [
-              {
-                "title": "API Tests have completed",
-                "value": "Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nErrors: ${{ steps.build.outputs.errorTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-              }
-            ]
+          args: '{"webhook_url": "${{ secrets.SLACK_WEBHOOK_URL }}", "fields": [{"title": "API Tests have completed", "value": "Results are attached.\n\nTest Results:\nTotal: ${{ steps.build.outputs.totalTests }}\nPassed: ${{ steps.build.outputs.passedTests }}\nFailed: ${{ steps.build.outputs.failedTests }}\nErrors: ${{ steps.build.outputs.errorTests }}\nSkipped: ${{ steps.build.outputs.skippedTests }}.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"}]}'
+
