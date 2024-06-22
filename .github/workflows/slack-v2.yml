@@ -35,17 +35,13 @@ jobs:
         with:
           paths: "target/surefire-reports/junitreports/TEST-*.xml"
         if: always()
-         # Debug step to verify outputs (optional)
+
       - name: Debug test summary outputs
         run: |
-          total_tests=$(grep -oPm1 "(?<=Tests run: )\d+" result.txt | tail -1)
-          passed_tests=$(grep -oPm1 "(?<=Success: )\d+" result.txt | tail -1)
-          failed_tests=$(grep -oPm1 "(?<=Failures: )\d+" result.txt | tail -1)
-          skipped_tests=$(grep -oPm1 "(?<=Skipped: )\d+" result.txt | tail -1)
-          echo "::set-output name=totalTests::$total_tests"
-          echo "::set-output name=passedTests::$passed_tests"
-          echo "::set-output name=failedTests::$failed_tests"
-          echo "::set-output name=skippedTests::$skipped_tests"
+          echo "Total Tests: ${{ steps.test_summary.outputs.totalTests }}"
+          echo "Passed Tests: ${{ steps.test_summary.outputs.passedTests }}"
+          echo "Failed Tests: ${{ steps.test_summary.outputs.failedTests }}"
+          echo "Skipped Tests: ${{ steps.test_summary.outputs.skippedTests }}"
 
   notify-slack:
     runs-on: ubuntu-latest
@@ -63,3 +59,24 @@ jobs:
         run: |
           slack_message="Results are attached.\n\nTest Results:\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
+
+      - name: Send custom JSON data to Slack workflow
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Maven Test Results",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Maven Test Results*\nBUILD_STATUS: ${{ job.status }}\nTotal Tests: ${{ steps.test_summary.outputs.totalTests }}\nPassed Tests: ${{ steps.test_summary.outputs.passedTests }}\nFailed Tests: ${{ steps.test_summary.outputs.failedTests }}\nSkipped Tests: ${{ steps.test_summary.outputs.skippedTests }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
