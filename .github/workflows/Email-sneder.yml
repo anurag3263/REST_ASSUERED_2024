@@ -63,6 +63,9 @@ jobs:
           paths: "target/surefire-reports/junitreports/TEST-*.xml"
         if: always()
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
       - name: Send email
         uses: devellany/send-mailer@v1.0.2
         with:
