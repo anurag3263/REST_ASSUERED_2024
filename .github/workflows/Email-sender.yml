@@ -77,7 +77,7 @@ jobs:
          from: ${{secrets.MAIL_ADDRESS}}
          to: anuragchaturvedi0@gmail.com
          subject: anurag Api job run status.
-         body: file://README.md
+         body: anurag sent email message
          contentType: text/html
          attachments: '[{"path":"src/test/resources/TestData/PutCall.json"}]'
 
