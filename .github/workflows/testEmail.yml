@@ -1,0 +1,24 @@
+name: Send Email Example
+
+on:
+  workflow_dispatch:
+    # Manually trigger the workflow
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Email
+        uses: hilarion5/send-mail@v1
+        with:
+          smtp-server: smtp.google.com
+          smtp-port: 465
+          smtp-secure: true
+          from-email: ${{secrets.MAIL_ADDRESS}}
+          to-email: ${{secrets.MAIL_ADDRESS}}, anuragchaturvedi0@gmail.com
+          username: ${{secrets.MAIL_ADDRESS}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: Test Email
+          body: This is a test email sent from GitHub Actions.
+          html: |
+            <h1>This is a test email</h1>
+            <p>Test Paragraph</p>
