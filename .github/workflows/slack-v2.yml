@@ -114,6 +114,10 @@ jobs:
       - name: Echo file path
         run: |
          echo "File exists: $(test -f README.md && echo 'yes' || echo 'no')"
+
+      - name: Verify file path and existence
+        run: |
+          ls -l ${GITHUB_WORKSPACE}/target/extent.html
         
       - name: Send mail
         uses: JaSiLez/smtp-notifier@main
