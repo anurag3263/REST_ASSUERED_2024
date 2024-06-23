@@ -101,7 +101,7 @@ jobs:
           text: |
             Build job of ${{github.repository}} completed successfully. 
             BUILD STATUS: success
-          attachments: ${{ steps.find attachment_file }}
+          attachments: ${{ github.workspace }}/target/extent.html
 
       - name: Parse Surefire XML Reports
         id: parse_xml_reports
