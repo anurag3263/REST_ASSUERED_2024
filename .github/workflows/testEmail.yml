@@ -7,7 +7,17 @@ jobs:
   send-email:
     runs-on: ubuntu-latest
     steps:
-      
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: List directory contents
+        run: ls -R
+        
+      - name: Echo file path
+        run: |
+         echo "File exists: $(test -f README.md && echo 'yes' || echo 'no')"
+        
       - name: Send mail
         uses: JaSiLez/smtp-notifier@main
         with:
