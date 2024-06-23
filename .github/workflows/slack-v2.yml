@@ -92,17 +92,6 @@ jobs:
          # Optional priority: 'high', 'normal' (default) or 'low'
            priority: low
 
-      - name: Send Slack notification with attachment
-        if: success()  # Send Slack notification only if previous steps (e.g., Maven build) succeed
-        uses: 8398a7/action-slack@v3
-        with:
-          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}  # Replace with your Slack webhook URL from Secrets
-          channel: C078VCP3VK8  # Replace with your Slack channel name or ID
-          text: |
-            Build job of ${{github.repository}} completed successfully. 
-            BUILD STATUS: success
-          attachments: ${{ github.workspace }}/target/extent.html
-
       - name: Parse Surefire XML Reports
         id: parse_xml_reports
         run: |
