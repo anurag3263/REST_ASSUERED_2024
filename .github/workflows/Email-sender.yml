@@ -81,6 +81,23 @@ jobs:
          contentType: text/html
          attachments: '[{"path":"src/test/resources/TestData/PutCall.json"}]'
 
+  Email:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Send email with SMTP
+      uses: peter-evans/sendmail-action@v2
+      with:
+        server_address: smtp.google.com
+        server_port: 587
+        username: ${{ secrets.MAIL_ADDRESS }}
+        password: ${{ secrets.MAIL_PASSWORD }}
+        from_address: ${{ secrets.MAIL_ADDRESS }}
+        to_address: ${{ secrets.MAIL_ADDRESS }}
+        subject: API Test run status
+        body: |
+          This is the email body.
+        attachments: '["target/extent.html"]'
+
   notify-slack:
     runs-on: ubuntu-latest
     needs: [build]
