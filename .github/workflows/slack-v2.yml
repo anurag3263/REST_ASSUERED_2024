@@ -117,7 +117,7 @@ jobs:
 
       - name: Verify file path and existence
         run: |
-          ls -l ${GITHUB_WORKSPACE}/target/extent.html
+          ls -l ${{ github.workspace }}/target/surefire-reports/index.html 
         
       - name: Send mail
         uses: JaSiLez/smtp-notifier@main
@@ -155,7 +155,7 @@ jobs:
          # Optional converting Markdown to HTML (set content_type to text/html too):
            convert_markdown: true
             # Optional attachments:
-           attachments: ${{ github.workspace }}/target/extent.html
+           attachments: ${{ github.workspace }}/target/surefire-reports/index.html
          # Optional priority: 'high', 'normal' (default) or 'low'
            priority: low
 
