@@ -139,7 +139,7 @@ jobs:
           # Optional whether this connection use TLS (default is true if server_port is 465)
            secure: true
           # Optional plain body:
-           body: Build job of ${{github.repository}} completed successfully! BUILD_STATUS:${{job.status}}
+           body: Build job of ${{github.repository}} completed successfully!\n\n BUILD_STATUS :${{ job.status }}
          # Optional HTML body read from file:
           # html_body: ${{ github.workspace }}/target/extent.html
         # Optional carbon copy recipients:
