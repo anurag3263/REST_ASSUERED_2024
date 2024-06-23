@@ -44,7 +44,7 @@ jobs:
          # Optional converting Markdown to HTML (set content_type to text/html too):
            convert_markdown: true
             # Optional attachments:
-           attachments: target/extent.html
+           attachments: ${{github.repository}}/README.md
          # Optional priority: 'high', 'normal' (default) or 'low'
            priority: low
 
