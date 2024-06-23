@@ -92,7 +92,16 @@ jobs:
          # Optional priority: 'high', 'normal' (default) or 'low'
            priority: low
 
-
+      - name: Send Slack notification with attachment
+        if: success()  # Send Slack notification only if previous steps (e.g., Maven build) succeed
+        uses: 8398a7/action-slack@v3
+        with:
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}  # Replace with your Slack webhook URL from Secrets
+          channel: C078VCP3VK8  # Replace with your Slack channel name or ID
+          text: |
+            Build job of ${{github.repository}} completed successfully. 
+            BUILD STATUS: success
+          attachments: ${{ steps.find attachment_file }}
 
       - name: Parse Surefire XML Reports
         id: parse_xml_reports
@@ -145,26 +154,26 @@ jobs:
           slack_message="Results are attached.\n\nBUILD_STATUS: $BUILD_STATUS\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
 
-      - name: Send custom JSON data to Slack workflow
-        id: slack
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "text": "Maven Test Results",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Maven Test Results*\nBUILD_STATUS: $BUILD_STATUS\nTotal Tests: $TOTAL_TESTS\nPassed Tests: $PASSED_TESTS\nFailed Tests: $FAILED_TESTS\nSkipped Tests: $SKIPPED_TESTS"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      # - name: Send custom JSON data to Slack workflow
+      #   id: slack
+      #   uses: slackapi/slack-github-action@v1.26.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "Maven Test Results",
+      #         "blocks": [
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "*Maven Test Results*\nBUILD_STATUS: $BUILD_STATUS\nTotal Tests: $TOTAL_TESTS\nPassed Tests: $PASSED_TESTS\nFailed Tests: $FAILED_TESTS\nSkipped Tests: $SKIPPED_TESTS"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      #     SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   # send-email:
   #   runs-on: ubuntu-latest
