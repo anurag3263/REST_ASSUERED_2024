@@ -76,7 +76,7 @@ jobs:
          from: ${{secrets.MAIL_ADDRESS}}
          to: anuragchaturvedi0@gmail.com
          subject: anurag Api job run status.
-         body: file://README.md
+         body: file://target/extent.html
          contentType: text/html
          attachments: file://target/extent.html
 
