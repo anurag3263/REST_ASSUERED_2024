@@ -79,7 +79,7 @@ jobs:
          subject: anurag Api job run status.
          body: file://README.md
          contentType: text/html
-         attachments: '[{"path":"README.md"}]'
+         attachments: '[{"path":"src/test/resources/TestData/PutCall.json"}]'
 
   notify-slack:
     runs-on: ubuntu-latest
