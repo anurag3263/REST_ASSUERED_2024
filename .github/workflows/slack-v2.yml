@@ -100,3 +100,58 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  send-email:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: List directory contents
+        run: ls -R
+        
+      - name: Echo file path
+        run: |
+         echo "File exists: $(test -f README.md && echo 'yes' || echo 'no')"
+        
+      - name: Send mail
+        uses: JaSiLez/smtp-notifier@main
+        with:
+    # Required mail server address:
+           server_address: smtp.gmail.com
+           # Required mail server port:
+           server_port: 465
+          # Optional (recommended): mail server username:
+           username: ${{secrets.MAIL_ADDRESS}}
+         # Optional (recommended) mail server password:
+           password: ${{secrets.MAIL_PASSWORD}}
+          # Required mail subject:
+           subject: Github Actions job result
+          # Required recipients' addresses:
+           to: ${{secrets.MAIL_ADDRESS}}
+          # Required sender full name (address can be skipped):
+           from: ${{secrets.MAIL_ADDRESS}} # <user@example.com>
+          # Optional whether this connection use TLS (default is true if server_port is 465)
+           secure: true
+          # Optional plain body:
+           body: Build job of ${{github.repository}} completed successfully! BUILD_STATUS:${{job.status}}
+         # Optional HTML body read from file:
+           html_body: ${{ github.workspace }}/target/extent.html
+        # Optional carbon copy recipients:
+          # cc: kyloren@example.com,leia@example.com
+           # Optional blind carbon copy recipients:
+          # bcc: r2d2@example.com,hansolo@example.com
+          # Optional recipient of the email response:
+          # reply_to: luke@example.com
+          # Optional Message ID this message is replying to:
+          # in_reply_to: <random-luke@example.com>
+          # Optional unsigned/invalid certificates allowance:
+           ignore_cert: true
+         # Optional converting Markdown to HTML (set content_type to text/html too):
+           convert_markdown: true
+            # Optional attachments:
+           attachments: ${{ github.workspace }}/target/extent.html
+         # Optional priority: 'high', 'normal' (default) or 'low'
+           priority: low
+
