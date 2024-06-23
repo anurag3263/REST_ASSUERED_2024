@@ -29,6 +29,23 @@ jobs:
           name: surefire-reports
           path: target/surefire-reports
 
+      - name: Wait for report generation
+        run: sleep 20s  # Adjust the delay as needed after Maven test completion
+
+      - name: Refresh workspace
+        run: |
+          git fetch --prune
+          git checkout ${{ github.ref }}
+
+      - name: Find generated report
+        run: |
+          generated_report=$(find ${GITHUB_WORKSPACE}/target/surefire-reports/ -name '*.html' -print -quit)
+          echo "Generated Report: $generated_report"
+          if [ -z "$generated_report" ]; then
+            echo "Error: Generated report not found."
+            exit 1
+          fi
+
       - name: Parse Surefire XML Reports
         id: parse_xml_reports
         run: |
