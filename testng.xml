@@ -10,7 +10,7 @@
 			<class name="crudOperaion.ReqSpec_ResSpec" />
 			<class name="crudOperaion.PropertiesFileReader" />
 			<class name="crudOperaion.PutPatchDelete" />
-			<class name="crudOperaion.JsonSchemaValidator" />
+			<class name="crudOperaion.JsonSchemaValidator" /> 
 			<class name="crudOperaion.JsonClass" />
 			<class name="crudOperaion.GetMethod" />
 			<class name="crudOperaion.CsvReader" />
