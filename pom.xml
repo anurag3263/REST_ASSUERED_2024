@@ -1,293 +1,276 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	<modelVersion>4.0.0</modelVersion>
 
-xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<groupId>RestAssuredAutomation</groupId>
 
-<modelVersion>4.0.0</modelVersion>
+	<artifactId>RestAssuredAuto</artifactId>
 
-<groupId>RestAssuredAutomation</groupId>
+	<version>0.0.1-SNAPSHOT</version>
 
-<artifactId>RestAssuredAuto</artifactId>
 
-<version>0.0.1-SNAPSHOT</version>
+	<properties>
 
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<allure.version>2.25.0</allure.version>
 
+		<aspectj.version>1.9.21</aspectj.version>
 
-<properties>
+	</properties>
 
-<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	<build>
 
-<allure.version>2.25.0</allure.version>
+		<plugins>
 
-<aspectj.version>1.9.21</aspectj.version>
+			<plugin>
 
-</properties>
+				<groupId>org.apache.maven.plugins</groupId>
 
-<build>
+				<artifactId>maven-compiler-plugin</artifactId>
 
-<plugins>
+				<version>3.12.1</version>
 
-<plugin>
+				<configuration>
 
-<groupId>org.apache.maven.plugins</groupId>
+					<encoding>${project.build.sourceEncoding}</encoding>
 
-<artifactId>maven-compiler-plugin</artifactId>
+					<source>21</source>
 
-<version>3.12.1</version>
+					<target>21</target>
 
-<configuration>
+				</configuration>
 
-<encoding>${project.build.sourceEncoding}</encoding>
+			</plugin>
 
-<source>21</source>
+			<plugin>
 
-<target>21</target>
+				<groupId>org.apache.maven.plugins</groupId>
 
-</configuration>
+				<artifactId>maven-surefire-plugin</artifactId>
 
-</plugin>
+				<version>3.2.5</version>
 
-<plugin>
+				<configuration>
 
-<groupId>org.apache.maven.plugins</groupId>
+					<testFailureIgnore>true</testFailureIgnore>
 
-<artifactId>maven-surefire-plugin</artifactId>
+					<suiteXmlFiles>
 
-<version>3.2.5</version>
+						<suiteXmlFile>testng.xml</suiteXmlFile>
 
-<configuration>
+					</suiteXmlFiles>
 
-<testFailureIgnore>true</testFailureIgnore>
+					<argLine>
 
-<suiteXmlFiles>
+						-Dfile.encoding=${project.build.sourceEncoding}
+						-javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
 
-<suiteXmlFile>testng.xml</suiteXmlFile>
+					</argLine>
 
-</suiteXmlFiles>
+				</configuration>
 
-<argLine>
+				<dependencies>
 
--Dfile.encoding=${project.build.sourceEncoding}
+					<dependency>
 
--javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+						<groupId>org.aspectj</groupId>
 
-</argLine>
+						<artifactId>aspectjweaver</artifactId>
 
-</configuration>
+						<version>${aspectj.version}</version>
 
-<dependencies>
+					</dependency>
 
-<dependency>
+				</dependencies>
 
-<groupId>org.aspectj</groupId>
+			</plugin>
 
-<artifactId>aspectjweaver</artifactId>
 
-<version>${aspectj.version}</version>
+			<plugin>
 
-</dependency>
+				<groupId>io.qameta.allure</groupId>
 
-</dependencies>
+				<artifactId>allure-maven</artifactId>
 
-</plugin>
+				<version>2.10.0</version>
 
+				<configuration>
 
+					<reportVersion>${allure.version}</reportVersion>
 
+					<resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
 
-<plugin>
+				</configuration>
 
-<groupId>io.qameta.allure</groupId>
+			</plugin>
 
-<artifactId>allure-maven</artifactId>
+		</plugins>
 
-<version>2.10.0</version>
+	</build>
 
-<configuration>
+	<dependencyManagement>
 
-<reportVersion>${allure.version}</reportVersion>
+		<dependencies>
 
-<resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+			<dependency>
 
-</configuration>
+				<groupId>io.qameta.allure</groupId>
 
-</plugin>
+				<artifactId>allure-bom</artifactId>
 
-</plugins>
+				<version>${allure.version}</version>
 
-</build>
+				<type>pom</type>
 
-<dependencyManagement>
+				<scope>import</scope>
 
-<dependencies>
+			</dependency>
 
-<dependency>
+			<dependency>
 
-<groupId>io.qameta.allure</groupId>
+				<groupId>org.testng</groupId>
 
-<artifactId>allure-bom</artifactId>
+				<artifactId>testng</artifactId>
 
-<version>${allure.version}</version>
+				<version>7.9.0</version>
 
-<type>pom</type>
+			</dependency>
 
-<scope>import</scope>
+		</dependencies>
 
-</dependency>
+	</dependencyManagement>
 
-<dependency>
 
-<groupId>org.testng</groupId>
+	<dependencies>
 
-<artifactId>testng</artifactId>
+		<dependency>
 
-<version>7.9.0</version>
+			<groupId>io.rest-assured</groupId>
 
-</dependency>
+			<artifactId>rest-assured</artifactId>
 
-</dependencies>
+			<version>5.4.0</version>
 
-</dependencyManagement>
+			<!-- <scope>test</scope>-->
 
+		</dependency>
 
+		<dependency>
 
+			<groupId>io.rest-assured</groupId>
 
+			<artifactId>json-path</artifactId>
 
+			<version>5.4.0</version>
 
+			<!-- <scope>test</scope>-->
 
-<dependencies>
+		</dependency>
 
-<dependency>
+		<dependency>
 
-<groupId>io.rest-assured</groupId>
+			<groupId>org.testng</groupId>
 
-<artifactId>rest-assured</artifactId>
+			<artifactId>testng</artifactId>
 
-<version>5.4.0</version>
+		</dependency>
 
-<!-- <scope>test</scope>-->
+		<dependency>
 
-</dependency>
+			<groupId>io.qameta.allure</groupId>
 
-<dependency>
+			<artifactId>allure-testng</artifactId>
 
-<groupId>io.rest-assured</groupId>
+			<scope>test</scope>
 
-<artifactId>json-path</artifactId>
+		</dependency>
 
-<version>5.4.0</version>
+		<dependency>
 
-<!-- <scope>test</scope>-->
+			<groupId>com.googlecode.json-simple</groupId>
 
-</dependency>
+			<artifactId>json-simple</artifactId>
 
-<dependency>
+			<version>1.1.1</version>
 
-<groupId>org.testng</groupId>
+		</dependency>
 
-<artifactId>testng</artifactId>
+		<dependency>
 
-</dependency>
+			<groupId>io.rest-assured</groupId>
 
-<dependency>
+			<artifactId>json-schema-validator</artifactId>
 
-<groupId>io.qameta.allure</groupId>
+			<version>5.4.0</version>
 
-<artifactId>allure-testng</artifactId>
+		</dependency>
 
-<scope>test</scope>
+		<dependency>
 
-</dependency>
+			<groupId>org.apache.logging.log4j</groupId>
 
-<dependency>
+			<artifactId>log4j-api</artifactId>
 
-<groupId>com.googlecode.json-simple</groupId>
+			<version>2.23.1</version>
 
-<artifactId>json-simple</artifactId>
+		</dependency>
 
-<version>1.1.1</version>
+		<dependency>
 
-</dependency>
+			<groupId>org.apache.logging.log4j</groupId>
 
-<dependency>
+			<artifactId>log4j-core</artifactId>
 
-<groupId>io.rest-assured</groupId>
+			<version>2.23.1</version>
 
-<artifactId>json-schema-validator</artifactId>
+		</dependency>
 
-<version>5.4.0</version>
+		<dependency>
 
-</dependency>
+			<groupId>org.apache.poi</groupId>
 
-<dependency>
+			<artifactId>poi</artifactId>
 
-<groupId>org.apache.logging.log4j</groupId>
+			<version>5.2.2</version>
 
-<artifactId>log4j-api</artifactId>
+		</dependency>
 
-<version>2.23.1</version>
+		<dependency>
 
-</dependency>
+			<groupId>org.apache.poi</groupId>
 
-<dependency>
+			<artifactId>poi-ooxml</artifactId>
 
-<groupId>org.apache.logging.log4j</groupId>
+			<version>5.2.2</version>
 
-<artifactId>log4j-core</artifactId>
+		</dependency>
 
-<version>2.23.1</version>
+		<dependency>
 
-</dependency>
+			<groupId>com.aventstack</groupId>
 
-<dependency>
+			<artifactId>extentreports</artifactId>
 
-<groupId>org.apache.poi</groupId>
+			<version>5.0.9</version>
 
-<artifactId>poi</artifactId>
+		</dependency>
 
-<version>5.2.2</version>
+		<dependency>
 
-</dependency>
+			<groupId>org.projectlombok</groupId>
 
-<dependency>
+			<artifactId>lombok</artifactId>
 
-<groupId>org.apache.poi</groupId>
+			<version>1.18.22</version> <!-- Use the latest version -->
 
-<artifactId>poi-ooxml</artifactId>
+			<scope>provided</scope>
 
-<version>5.2.2</version>
+		</dependency>
 
-</dependency>
 
-<dependency>
-
-<groupId>com.aventstack</groupId>
-
-<artifactId>extentreports</artifactId>
-
-<version>5.0.9</version>
-
-</dependency>
-
-<dependency>
-
-<groupId>org.projectlombok</groupId>
-
-<artifactId>lombok</artifactId>
-
-<version>1.18.22</version> <!-- Use the latest version -->
-
-<scope>provided</scope>
-
-</dependency>
-
-
-
-
-
-
-
-</dependencies>
+	</dependencies>
 
 </project>
