@@ -20,7 +20,7 @@ public class JsonSchemaValidator {
 		.accept(ContentType.JSON)
 		.when().get("users?page=2");
 		response.then().statusCode(200);
-		response.then().assertThat().body(matchesJsonSchemaInClasspath("schema.json"));
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schema1.json"));
 		
 		// add the JSON file in target/class folder and the pass the file name in argument to validate
 	}
