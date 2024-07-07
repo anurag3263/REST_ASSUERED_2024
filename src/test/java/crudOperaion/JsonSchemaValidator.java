@@ -24,5 +24,18 @@ public class JsonSchemaValidator {
 		
 		// add the JSON file in target/class folder and the pass the file name in argument to validate
 	}
+	@Test
+	public void test_schemaValidator2() {
+		baseURI="https://reqres.in/api/";
+		
+	response =	given()
+		.contentType(ContentType.JSON)
+		.accept(ContentType.JSON)
+		.when().get("users?page=2");
+		response.then().statusCode(200);
+		response.then().assertThat().body(matchesJsonSchemaInClasspath("schema2.json"));
+		
+		// add the JSON file in target/class folder and the pass the file name in argument to validate
+	}
 
 }
