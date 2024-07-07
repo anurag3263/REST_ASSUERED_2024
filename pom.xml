@@ -37,9 +37,9 @@
 
 					<encoding>${project.build.sourceEncoding}</encoding>
 
-					<source>21</source>
+					<source>11</source>
 
-					<target>21</target>
+					<target>11</target>
 
 				</configuration>
 

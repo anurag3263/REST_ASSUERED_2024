@@ -1,3 +1,4 @@
 /target/
 .allure/
 .DS_Store
+/test-output
