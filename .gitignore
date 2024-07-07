@@ -2,3 +2,4 @@
 .allure/
 .DS_Store
 /test-output
+.classpath
