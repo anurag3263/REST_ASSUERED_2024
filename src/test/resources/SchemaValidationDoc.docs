@@ -1,0 +1,256 @@
+1. Handling Nested Objects and Arrays
+API responses often include nested objects and arrays. Ensure your schema handles nested structures correctly:
+
+Example Schema (nested.json):
+
+
+{
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "addresses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "street": { "type": "string" },
+          "city": { "type": "string" },
+          "zip": { "type": "string" }
+        },
+        "required": ["street", "city"]
+      }
+    }
+  },
+  "required": ["id", "name", "addresses"]
+}
+
+2. Handling Enums and Fixed Values
+Some API fields may have fixed values or come from a predefined set (enums).
+ Use "enum" and "const" keywords to enforce these constraints:
+
+Example Schema (enums.json):
+
+
+{
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive", "pending"]
+    },
+    "role": {
+      "type": "string",
+      "const": "admin"
+    }
+  },
+  "required": ["status", "role"]
+}
+
+3. Handling Dates and Date Formats
+Date and time formats can vary across APIs. Use "format" keyword to validate dates and times:
+
+Example Schema (dates.json):
+
+
+{
+  "type": "object",
+  "properties": {
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": ["created_at"]
+}
+
+4. Handling Null and Optional Fields
+Some fields in API responses may be optional or nullable. Use "type": ["string", "null"] to allow for null values:
+
+Example Schema (optional.json):
+
+
+{
+  "type": "object",
+  "properties": {
+    "optional_field": {
+      "type": ["string", "null"]
+    }
+  }
+}
+
+5. Handling Pagination and Lists
+For APIs that return paginated results or lists, ensure your schema accommodates varying sizes and ordering:
+
+Example Schema (pagination.json):
+
+
+{
+  "type": "object",
+  "properties": {
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" },
+    "total": { "type": "integer" },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        },
+        "required": ["id", "name"]
+      }
+    }
+  },
+  "required": ["page", "per_page", "total", "data"]
+}
+
+6. Handling Complex Schemas and References
+For large or complex schemas, break them down into reusable components and use 
+$ref keyword to reference other parts of the schema:
+
+Example Schema (complex.json):
+
+
+{
+  "definitions": {
+    "address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" }
+      },
+      "required": ["street", "city"]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "billing_address": { "$ref": "#/definitions/address" },
+    "shipping_address": { "$ref": "#/definitions/address" }
+  },
+  "required": ["id", "name"]
+}
+Tips for Mastery:
+Practice with Real APIs: Use schemas to validate responses from real-world APIs you interact with daily.
+Explore Advanced Keywords: Familiarize yourself with advanced keywords like oneOf, allOf, anyOf,
+and not to handle complex validation scenarios.
+Use Schema Generators: Tools like Swagger/OpenAPI can generate schemas automatically, 
+helping you understand and validate API contracts.
+Stay Updated: JSON Schema specification evolves. Stay updated with the latest features and improvements.
+By exploring these scenarios and tips, you'll gain a deeper understanding of JSON schema validation 
+and become more proficient in ensuring API response integrity and consistency.
+Practice with different API responses and edge cases to solidify your skills.
+
+
+
+ADVANCE FEATURE 
+
+
+Advanced keywords in JSON Schema such as oneOf, allOf, anyOf, and 'not' provide powerful mechanisms to handle complex validation scenarios.
+These keywords allow you to define conditions under which certain parts of your schema should apply, providing flexibility and precision in schema validation.
+
+1. oneOf
+The oneOf keyword specifies that exactly one of the schemas defined under it must be valid for the JSON instance to be valid.
+
+Example:
+
+
+{
+  "oneOf": [
+    {
+      "type": "integer",
+      "minimum": 10
+    },
+    {
+      "type": "string",
+      "minLength": 5
+    }
+  ]
+}
+Explanation:
+This schema ensures that the JSON instance is valid if it matches exactly one of the following:
+An integer with a minimum value of 10.
+A string with a minimum length of 5 characters.
+
+2. allOf
+The allOf keyword requires that all schemas defined under it must be valid for the JSON instance to be valid. It combines multiple schemas into a single schema.
+
+Example:
+
+
+{
+  "allOf": [
+    {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "age": { "type": "integer", "minimum": 18 }
+      }
+    }
+  ]
+}
+Explanation:
+This schema ensures that the JSON instance must be an object ("type": "object").
+It requires the object to have a "name" property that is a string ("required": ["name"]).
+Additionally, the object must have an "age" property that is an integer with a minimum value of 18.
+
+3. anyOf
+The anyOf keyword specifies that at least one of the schemas defined under it must be valid for the JSON instance to be valid.
+
+Example:
+
+
+{
+  "anyOf": [
+    {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" }
+      },
+      "required": ["name"]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "age": { "type": "integer", "minimum": 18 }
+      }
+    }
+  ]
+}
+Explanation:
+This schema validates if the JSON instance matches at least one of the following:
+An object with a "name" property that is a string.
+An object with an "age" property that is an integer with a minimum value of 18.
+
+4. not
+The not keyword specifies a schema that the JSON instance must not match for it to be valid.
+
+Example:
+
+
+{
+  "not": {
+    "type": "null"
+  }
+}
+Explanation:
+This schema ensures that the JSON instance must not be null to be considered valid.
+It allows any value except null.
+Practical Use Cases:
+Complex Validation Conditions: Use oneOf, allOf, anyOf, and not to define complex validation conditions where different parts of 
+your schema apply under different circumstances.
+Conditional Properties: Define schemas where certain properties are required or optional based on other properties or conditions.
+Data Transformation: Validate data against multiple schemas to ensure it meets specific business logic or application requirements.

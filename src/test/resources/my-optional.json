@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "page": { "type": "integer" },
+    "per_page": { "type": "integer" },
+    "total": { "type": "integer" },
+    "total_pages": { "type": "integer" },
+    "data": {
+      "type": "array",
+      "minItems": 1,//"minItems": 0, //"minItems": 0 allows the data array to be empty ([]).
+	  
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "email": { "type": "string", "format": "email" },
+          "first_name": { "type": "string" },
+          "last_name": { "type": "string" },
+          "avatar": { "type": "string", "format": "uri" },
+          "optional_field": { "type": ["string", "null"] } // Example of an optional field
+        },
+        "required": ["id", "email", "first_name", "last_name", "avatar"],
+        "additionalProperties": false // Ensures no extra properties are allowed
+		//optional_field: This is an example of an optional field within each data object. 
+		//It's defined with "type": ["string", "null"], indicating it can either be a string or null.
+		//"required": Includes the mandatory fields (id, email, first_name, last_name, avatar) within each data object.
+		//"additionalProperties": false: Ensures that no extra properties are allowed within each data object.
+      }
+    },
+    "support": {
+      "type": "object",
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "text": { "type": "string" }
+      },
+      "required": ["url", "text"]
+    }
+  },
+  "required": ["page", "per_page", "total", "total_pages", "data", "support"]
+}
