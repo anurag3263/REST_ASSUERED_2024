@@ -48,57 +48,27 @@ jobs:
 
       - name: Verify file path and existence
         run: |
-          ls -l ${{ github.workspace }}/target/surefire-reports/index.html 
-        
-    #   - name: Send mail
-    #     uses: JaSiLez/smtp-notifier@main
-    #     with:
-    # # Required mail server address:
-    #        server_address: smtp.gmail.com
-    #        # Required mail server port:
-    #        server_port: 465
-    #       # Optional (recommended): mail server username:
-    #        username: ${{secrets.MAIL_ADDRESS}}
-    #      # Optional (recommended) mail server password:
-    #        password: ${{secrets.MAIL_PASSWORD}}
-    #       # Required mail subject:
-    #        subject: Github Actions job result
-    #       # Required recipients' addresses:
-    #        to: ${{secrets.MAIL_ADDRESS}}
-    #       # Required sender full name (address can be skipped):
-    #        from: ${{secrets.MAIL_ADDRESS}} # <user@example.com>
-    #       # Optional whether this connection use TLS (default is true if server_port is 465)
-    #        secure: true
-    #       # Optional plain body:
-    #        body: |
-    #         Build job of ${{github.repository}} completed successfully. 
-    #         BUILD STATUS -->: ${{ job.status }}         
-    #       # Optional HTML body read from file:
-    #       # html_body: ${{ github.workspace }}/target/extent.html
-    #     # Optional carbon copy recipients:
-    #       # cc: kyloren@example.com,leia@example.com
-    #        # Optional blind carbon copy recipients:
-    #       # bcc: r2d2@example.com,hansolo@example.com
-    #       # Optional recipient of the email response:
-    #       # reply_to: luke@example.com
-    #       # Optional Message ID this message is replying to:
-    #       # in_reply_to: <random-luke@example.com>
-    #       # Optional unsigned/invalid certificates allowance:
-    #        ignore_cert: true
-    #      # Optional converting Markdown to HTML (set content_type to text/html too):
-    #        convert_markdown: true
-    #         # Optional attachments:
-    #        attachments: ${{ github.workspace }}/target/extentReport.html
-    #      # Optional priority: 'high', 'normal' (default) or 'low'
-    #        priority: low
+          ls -l ${{ github.workspace }}/target/surefire-reports/index.html
 
       - name: Parse test results
         id: parse_results
         run: |
-         echo "##[set-output name=passed;]$(grep -c '<testsuite' target/surefire-reports/*.xml)"
-         echo "##[set-output name=failed;]$(grep -c '<failure' target/surefire-reports/*.xml)"
-         echo "##[set-output name=skipped;]$(grep -c '<skipped' target/surefire-reports/*.xml)"
+          passed_tests=$(grep -c '<testsuite' target/surefire-reports/*.xml || true)
+          failed_tests=$(grep -c '<failure' target/surefire-reports/*.xml || true)
+          skipped_tests=$(grep -c '<skipped' target/surefire-reports/*.xml || true)
 
+          echo "Passed: $passed_tests"
+          echo "Failed: $failed_tests"
+          echo "Skipped: $skipped_tests"
+
+          echo "TOTAL_TESTS=$passed_tests" > results.env
+          echo "PASSED_TESTS=$passed_tests" >> results.env
+          echo "FAILED_TESTS=$failed_tests" >> results.env
+          echo "SKIPPED_TESTS=$skipped_tests" >> results.env
+
+      - name: Set environment variables from results
+        run: |
+          source results.env
 
       - name: Test Summary
         id: test_summary
@@ -116,10 +86,10 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           BUILD_STATUS: ${{ job.status }}
-          TOTAL_TESTS: ${{ steps.parse_results.outputs.passed }}
-          PASSED_TESTS: ${{ steps.parse_results.outputs.passed }}
-          FAILED_TESTS: ${{ steps.parse_results.outputs.failed }}
-          SKIPPED_TESTS: ${{ steps.parse_results.outputs.skipped }}
+          TOTAL_TESTS: ${{ env.TOTAL_TESTS }}
+          PASSED_TESTS: ${{ env.PASSED_TESTS }}
+          FAILED_TESTS: ${{ env.FAILED_TESTS }}
+          SKIPPED_TESTS: ${{ env.SKIPPED_TESTS }}
         run: |
           slack_message="Results are attached.\n\nBUILD_STATUS: $BUILD_STATUS\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
