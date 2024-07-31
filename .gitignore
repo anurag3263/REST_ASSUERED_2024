@@ -3,3 +3,6 @@
 .DS_Store
 /test-output
 .classpath
+.settings/
+.project
+.vscode
