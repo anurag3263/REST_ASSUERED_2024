@@ -2,11 +2,11 @@ name: Maven Test and Publish Allure Report
 
 on:
   workflow_call:
-    inputs:
-      GIT_TOKEN:
-        description: 'Token for authentication'
-        required: true
-        type: string
+    # inputs:
+    #   GIT_TOKEN:
+    #     description: 'Token for authentication'
+    #     required: true
+    #     type: string
 
   workflow_dispatch: # Allows manual triggering
   repository_dispatch:
