@@ -1,0 +1,5 @@
+{
+  "id": "{{{request.path.contractid}}}",
+  "firstname": "Anurag",
+  "lastname": "Chaturvedi"
+}
