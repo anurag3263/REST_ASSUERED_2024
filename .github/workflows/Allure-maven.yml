@@ -2,6 +2,7 @@
 name: Maven Test and Publish Allure Report
 
 on:
+  workflow_call:
   workflow_dispatch: # Allows manual triggering
   repository_dispatch:
     types: [trigger-workflow]  # Event type to listen for
