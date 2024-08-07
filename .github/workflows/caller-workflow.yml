@@ -1,4 +1,3 @@
-# .github/workflows/calling-workflow.yml
 name: Calling Allure Maven Workflow
 
 on:
