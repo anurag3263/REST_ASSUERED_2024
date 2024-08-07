@@ -1,8 +1,13 @@
-# .github/workflows/Allure-maven.yml
 name: Maven Test and Publish Allure Report
 
 on:
   workflow_call:
+    inputs:
+      token:
+        description: 'Token for authentication'
+        required: true
+        type: string
+
   workflow_dispatch: # Allows manual triggering
   repository_dispatch:
     types: [trigger-workflow]  # Event type to listen for
@@ -45,6 +50,6 @@ jobs:
         if: always()
         uses: peaceiris/actions-gh-pages@v2
         env:
-          PERSONAL_TOKEN: ${{ secrets.GIT_TOKEN }}
+          PERSONAL_TOKEN: ${{ inputs.token }}  # Use the token input
           PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
