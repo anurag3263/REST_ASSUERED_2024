@@ -1,0 +1,23 @@
+# .github/workflows/calling-workflow.yml
+name: Calling Allure Maven Workflow
+
+on:
+  workflow_dispatch: # Allows this workflow to be manually triggered from the GitHub UI
+    # inputs:
+    #   env:
+    #     type: choice
+    #     default: qa
+    #     description: "Select the environment"
+    #     required: false
+    #     options:
+    #       - qa
+    #       - dev
+    #       - staging
+
+jobs:
+  call_workflow:
+    uses: ./.github/workflows/Allure-maven.yml
+    # with:
+    #   PT_ENV: ${{ github.event.inputs.env }}
+    secrets:
+      GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
