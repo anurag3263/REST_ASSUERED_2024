@@ -50,6 +50,6 @@ jobs:
         if: always()
         uses: peaceiris/actions-gh-pages@v2
         env:
-          PERSONAL_TOKEN: ${{ inputs.token }}  # Use the token input
+          PERSONAL_TOKEN: ${{ secrets.GIT_TOKEN }}  # Use the token input
           PUBLISH_BRANCH: gh-pages
           PUBLISH_DIR: allure-history
