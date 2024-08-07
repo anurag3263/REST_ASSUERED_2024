@@ -1,15 +1,13 @@
 package crudOperaion;
 
-import static io.restassured.RestAssured.given;
-
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-
+import com.github.tomakehurst.wiremock.client.WireMock;
+import static io.restassured.RestAssured.*;
 import io.restassured.response.Response;
 
 public class WiremockTest {
@@ -18,7 +16,6 @@ public class WiremockTest {
 	private static final int Port = 8089;
 	private static WireMockServer server = new WireMockServer(Port);
 	private static final String END_POINT = "/readfromfile/index";
-	private static final String END_POINT2 = "/contract/{contractid}";
 	static Response response;
 
 	@BeforeClass
@@ -26,20 +23,12 @@ public class WiremockTest {
 		System.out.println("Initializing Wiremock Server on port 8089 ....");
 
 		server.start();
-		configureFor(Host, Port);
+		WireMock.configureFor(Host, Port);
 
-		// Stub for /readfromfile/index
 		ResponseDefinitionBuilder mockResponse = new ResponseDefinitionBuilder();
 		mockResponse.withStatus(200);
 		mockResponse.withBodyFile("WiremockTestData/reqUsers2.json");
-		stubFor(get(END_POINT).willReturn(mockResponse));
-
-		// Stub for /contract/{contractid} using the body file with templating
-		stubFor(get(urlPathTemplate("/contract/{contractid}"))
-		    .willReturn(aResponse()
-		        .withStatus(200)
-		        .withBodyFile("WiremockTestData/dynamicResTemp.json")
-		        .withTransformers("response-template")));
+		WireMock.stubFor(WireMock.get(END_POINT).willReturn(mockResponse));
 	}
 
 	@Test
@@ -49,14 +38,6 @@ public class WiremockTest {
 		response = given().get(testApi).then().statusCode(200).extract().response();
 		System.out.println(response.asString());
 
-	}
-
-	@Test
-	public void dynamicResponseTest() {
-		String testApi = "http://localhost:" + Port + END_POINT2;
-		System.out.println("Service to be hit ... " + testApi);
-		response = given().pathParam("contractid", "abc123").get(testApi).then().statusCode(200).extract().response();
-		System.out.println(response.asString());
 	}
 
 	@AfterClass
