@@ -100,25 +100,22 @@ jobs:
       - name: Parse Surefire XML Reports
         id: parse_xml_reports
         run: |
-          # Install xmlstarlet if not already available
           sudo apt-get update
           sudo apt-get install -y xmlstarlet
 
-          # Initialize variables
           total_tests=0
           passed_tests=0
           failed_tests=0
           skipped_tests=0
 
-          # Loop through all XML files and extract counts
           for file in target/surefire-reports/junitreports/TEST-*.xml; do
-            total_tests=$((total_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase)" "$file")))
-            passed_tests=$((passed_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='passed'])" "$file")))
-            failed_tests=$((failed_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='failed'])" "$file")))
-            skipped_tests=$((skipped_tests + $(xmlstarlet sel -t -v "count(//testsuite/testcase[@status='skipped'])" "$file")))
+            total_tests=$((total_tests + $(xmlstarlet sel -t -v "count(//testcase)" "$file")))
+            failed_tests=$((failed_tests + $(xmlstarlet sel -t -v "count(//testcase[failure or error])" "$file")))
+            skipped_tests=$((skipped_tests + $(xmlstarlet sel -t -v "count(//testcase[skipped])" "$file")))
           done
 
-          # Set outputs for downstream steps to use
+          passed_tests=$((total_tests - failed_tests - skipped_tests))
+
           echo "::set-output name=totalTests::$total_tests"
           echo "::set-output name=passedTests::$passed_tests"
           echo "::set-output name=failedTests::$failed_tests"
