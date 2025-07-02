@@ -7,6 +7,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest  # Using Ubuntu environment for compatibility with xmlstarlet
+    outputs:
+      totalTests: ${{ steps.parse_xml_reports.outputs.totalTests }}
+      passedTests: ${{ steps.parse_xml_reports.outputs.passedTests }}
+      failedTests: ${{ steps.parse_xml_reports.outputs.failedTests }}
+      skippedTests: ${{ steps.parse_xml_reports.outputs.skippedTests }}
 
     steps:
       - name: Checkout repository
@@ -135,10 +140,10 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           BUILD_STATUS: ${{ job.status }}
-          TOTAL_TESTS: ${{ steps.parse_xml_reports.outputs.totalTests }}
-          PASSED_TESTS: ${{ steps.parse_xml_reports.outputs.passedTests }}
-          FAILED_TESTS: ${{ steps.parse_xml_reports.outputs.failedTests }}
-          SKIPPED_TESTS: ${{ steps.parse_xml_reports.outputs.skippedTests }}
+          TOTAL_TESTS: ${{ needs.build.outputs.totalTests }}
+          PASSED_TESTS: ${{ needs.build.outputs.passedTests }}
+          FAILED_TESTS: ${{ needs.build.outputs.failedTests }}
+          SKIPPED_TESTS: ${{ needs.build.outputs.skippedTests }}
         run: |
           slack_message="Results are attached.\n\nBUILD_STATUS: $BUILD_STATUS\nTotal: $TOTAL_TESTS\nPassed: $PASSED_TESTS\nFailed: $FAILED_TESTS\nSkipped: $SKIPPED_TESTS.\n[View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"Maven tests completed successfully. $slack_message\"}" "$SLACK_WEBHOOK_URL"
